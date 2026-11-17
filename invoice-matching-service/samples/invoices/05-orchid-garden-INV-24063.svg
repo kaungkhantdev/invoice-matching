@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <g font-family="Helvetica, Arial, sans-serif" fill="#222">
+    <rect x="0" y="0" width="800" height="110" fill="#2e6b3f"/>
+    <text x="40" y="60" font-size="30" font-weight="bold" fill="#fff">Orchid Garden Supplies Pte. Ltd.</text>
+    <text x="40" y="90" font-size="15" fill="#e6f2e9">21 Lim Chu Kang Lane 3, Singapore 718888 · UEN/GST Reg No. 201912345K</text>
+    <text x="40" y="170" font-size="26" font-weight="bold">TAX INVOICE  INV-24063</text>
+    <text x="40" y="210" font-size="16">Date: 10/11/2026</text>
+    <text x="40" y="235" font-size="16">Due: 10/12/2026</text>
+    <text x="420" y="210" font-size="16">Bill to: Petal Lane Florist Pte. Ltd.</text>
+    <text x="420" y="235" font-size="16">PO Ref: PO-2026-0105</text>
+    <rect x="40" y="280" width="720" height="34" fill="#eef5ef"/>
+    <text x="50" y="303" font-size="15" font-weight="bold">Description</text>
+    <text x="430" y="303" font-size="15" font-weight="bold">Qty</text>
+    <text x="520" y="303" font-size="15" font-weight="bold">Unit Price</text>
+    <text x="650" y="303" font-size="15" font-weight="bold">Amount</text>
+    <text x="50" y="345" font-size="15">White lily stems (box)</text>
+    <text x="430" y="345" font-size="15">6</text>
+    <text x="520" y="345" font-size="15">64.00</text>
+    <text x="650" y="345" font-size="15">384.00</text>
+    <line x1="40" y1="370" x2="760" y2="370" stroke="#999"/>
+    <text x="520" y="410" font-size="15">Subtotal</text><text x="650" y="410" font-size="15">384.00</text>
+    <text x="520" y="435" font-size="15">GST 9%</text><text x="650" y="435" font-size="15">34.56</text>
+    <text x="520" y="470" font-size="18" font-weight="bold">Total SGD</text><text x="650" y="470" font-size="18" font-weight="bold">418.56</text>
+    <text x="40" y="560" font-size="14">Bank: DBS 072-123456-7 · SWIFT DBSSSGSG · A/C: Orchid Garden Supplies Pte. Ltd.</text>
+  </g>
+</svg>

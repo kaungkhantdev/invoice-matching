@@ -1,0 +1,35 @@
+[
+  {
+    "poNumber": "PO-2026-0101", "supplierId": "SUP-001", "currency": "SGD",
+    "lines": [
+      { "description": "Red rose stems (box of 50)", "unitPrice": "85.00", "orderedQty": "10", "receivedQty": "10" },
+      { "description": "Eucalyptus bunch", "unitPrice": "12.00", "orderedQty": "20", "receivedQty": "20" },
+      { "description": "Baby's breath bunch", "unitPrice": "9.50", "orderedQty": "15", "receivedQty": "15" }
+    ]
+  },
+  {
+    "poNumber": "PO-2026-0102", "supplierId": "SUP-002", "currency": "SGD",
+    "lines": [
+      { "description": "Kraft wrapping paper roll", "unitPrice": "18.00", "orderedQty": "40", "receivedQty": "40" },
+      { "description": "Gift box medium", "unitPrice": "2.40", "orderedQty": "300", "receivedQty": "300" }
+    ]
+  },
+  {
+    "poNumber": "PO-2026-0103", "supplierId": "SUP-003", "currency": "SGD",
+    "lines": [
+      { "description": "Satin ribbon 25mm roll", "unitPrice": "6.50", "orderedQty": "40", "receivedQty": "40" }
+    ]
+  },
+  {
+    "poNumber": "PO-2026-0104", "supplierId": "SUP-004", "currency": "SGD",
+    "lines": [
+      { "description": "Cold-chain delivery trip", "unitPrice": "120.00", "orderedQty": "8", "receivedQty": "8" }
+    ]
+  },
+  {
+    "poNumber": "PO-2026-0105", "supplierId": "SUP-001", "currency": "SGD",
+    "lines": [
+      { "description": "White lily stems (box)", "unitPrice": "64.00", "orderedQty": "6", "receivedQty": "4" }
+    ]
+  }
+]

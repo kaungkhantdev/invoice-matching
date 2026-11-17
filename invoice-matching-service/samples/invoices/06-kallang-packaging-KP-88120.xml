@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:CustomizationID>urn:cen.eu:en16931:2017#conformant#urn:fdc:peppol.eu:2017:poacc:billing:international:sg:3.0</cbc:CustomizationID>
+  <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+  <cbc:ID>KP-88120</cbc:ID>
+  <cbc:IssueDate>2026-10-28</cbc:IssueDate>
+  <cbc:DueDate>2026-11-27</cbc:DueDate>
+  <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>SGD</cbc:DocumentCurrencyCode>
+  <cac:OrderReference><cbc:ID>PO-2026-0102</cbc:ID></cac:OrderReference>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cbc:EndpointID schemeID="0195">SGUEN201788888W</cbc:EndpointID>
+      <cac:PartyName><cbc:Name>Kallang Packaging Pte. Ltd.</cbc:Name></cac:PartyName>
+      <cac:PostalAddress>
+        <cbc:StreetName>12 Kallang Place #05-11</cbc:StreetName>
+        <cbc:CityName>Singapore</cbc:CityName>
+        <cbc:PostalZone>339155</cbc:PostalZone>
+        <cac:Country><cbc:IdentificationCode>SG</cbc:IdentificationCode></cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme><cbc:CompanyID>201788888W</cbc:CompanyID><cac:TaxScheme><cbc:ID>GST</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme>
+      <cac:PartyLegalEntity><cbc:RegistrationName>Kallang Packaging Pte. Ltd.</cbc:RegistrationName><cbc:CompanyID>201788888W</cbc:CompanyID></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyName><cbc:Name>Petal Lane Florist Pte. Ltd.</cbc:Name></cac:PartyName>
+      <cac:PartyLegalEntity><cbc:RegistrationName>Petal Lane Florist Pte. Ltd.</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+    <cac:PayeeFinancialAccount>
+      <cbc:ID>501234567001</cbc:ID>
+      <cbc:Name>Kallang Packaging Pte. Ltd.</cbc:Name>
+      <cac:FinancialInstitutionBranch><cbc:ID>OCBCSGSG</cbc:ID></cac:FinancialInstitutionBranch>
+    </cac:PayeeFinancialAccount>
+  </cac:PaymentMeans>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SGD">91.80</cbc:TaxAmount>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="SGD">1020.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SGD">1020.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SGD">1111.80</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="SGD">1111.80</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:InvoiceLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="H87">30</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SGD">540.00</cbc:LineExtensionAmount>
+    <cac:Item>
+      <cbc:Name>Kraft wrapping paper roll</cbc:Name>
+      <cac:ClassifiedTaxCategory><cbc:ID>SR</cbc:ID><cbc:Percent>9</cbc:Percent><cac:TaxScheme><cbc:ID>GST</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="SGD">18.00</cbc:PriceAmount></cac:Price>
+  </cac:InvoiceLine>
+  <cac:InvoiceLine>
+    <cbc:ID>2</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="H87">200</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SGD">480.00</cbc:LineExtensionAmount>
+    <cac:Item>
+      <cbc:Name>Gift box medium</cbc:Name>
+      <cac:ClassifiedTaxCategory><cbc:ID>SR</cbc:ID><cbc:Percent>9</cbc:Percent><cac:TaxScheme><cbc:ID>GST</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="SGD">2.40</cbc:PriceAmount></cac:Price>
+  </cac:InvoiceLine>
+</Invoice>

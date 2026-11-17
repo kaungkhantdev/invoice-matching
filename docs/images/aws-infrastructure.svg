@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1530" height="770" viewBox="0 0 1530 770" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+  <rect width="1530" height="770" fill="#fff"/>
+
+  <text x="30" y="40" font-size="18" font-weight="bold" fill="#222">Invoice matching – AWS deployment</text>
+
+  <!-- region (AWS convention: dashed teal) -->
+  <rect x="220" y="70" width="1285" height="570" fill="none" stroke="#00A4A6" stroke-width="1.5" stroke-dasharray="8 5"/>
+  <text x="232" y="90" font-size="13" fill="#00727D">Region: ap-southeast-1 (Singapore) – all data stays here</text>
+
+  <!-- VPC (AWS convention: purple) -->
+  <rect x="236" y="425" width="1008" height="190" fill="none" stroke="#8C4FFF" stroke-width="1.5"/>
+  <text x="248" y="445" font-size="13" fill="#6b3fd4">VPC</text>
+
+  <!-- outside actors -->
+  <g fill="#fff" stroke="#444" stroke-width="1.3">
+    <rect x="30" y="140" width="160" height="115" rx="3"/>
+    <rect x="30" y="470" width="160" height="115" rx="3"/>
+  </g>
+  <text x="44" y="166" font-size="15" font-weight="bold" fill="#222">Suppliers</text>
+  <g font-size="12.5" fill="#333">
+    <text x="44" y="188">- invoice by email</text>
+    <text x="44" y="206">- InvoiceNow (Peppol)</text>
+  </g>
+  <text x="44" y="496" font-size="15" font-weight="bold" fill="#222">Finance team</text>
+  <g font-size="12.5" fill="#333">
+    <text x="44" y="518">- upload invoices</text>
+    <text x="44" y="536">- review, approve,</text>
+    <text x="55" y="554">reject</text>
+  </g>
+
+  <!-- service boxes (200 x 115) -->
+  <g fill="#fff" stroke="#444" stroke-width="1.3">
+    <rect x="250"  y="140" width="200" height="115" rx="3"/>
+    <rect x="510"  y="140" width="200" height="115" rx="3"/>
+    <rect x="1030" y="140" width="200" height="115" rx="3"/>
+    <rect x="1290" y="140" width="200" height="115" rx="3"/>
+    <rect x="250"  y="470" width="200" height="115" rx="3"/>
+    <rect x="510"  y="470" width="200" height="115" rx="3"/>
+    <rect x="770"  y="470" width="200" height="115" rx="3"/>
+    <rect x="1030" y="470" width="200" height="115" rx="3"/>
+  </g>
+
+  <!-- SES -->
+  <text x="264" y="166" font-size="15" font-weight="bold" fill="#222">Amazon SES</text>
+  <g font-size="12.5" fill="#333">
+    <text x="264" y="188">- receives invoice email</text>
+    <text x="275" y="206">in Singapore</text>
+    <text x="264" y="224">- saves it to the S3 inbox</text>
+  </g>
+
+  <!-- S3 -->
+  <text x="524" y="166" font-size="15" font-weight="bold" fill="#222">Amazon S3</text>
+  <g font-size="12.5" fill="#333">
+    <text x="524" y="188">- inbox + archive buckets</text>
+    <text x="524" y="206">- archive: Object Lock,</text>
+    <text x="535" y="224">7 years (IRAS: 5)</text>
+    <text x="524" y="242">- after 90 days: Glacier IR</text>
+  </g>
+
+  <!-- SQS -->
+  <text x="1044" y="166" font-size="15" font-weight="bold" fill="#222">Amazon SQS</text>
+  <g font-size="12.5" fill="#333">
+    <text x="1044" y="188">- 1 message per invoice</text>
+    <text x="1044" y="206">- holds all 700 (up to 14 days)</text>
+    <text x="1044" y="224">- 5 failed tries → dead-</text>
+    <text x="1055" y="242">letter queue → Review</text>
+  </g>
+
+  <!-- Bedrock -->
+  <text x="1304" y="166" font-size="15" font-weight="bold" fill="#222">Amazon Bedrock</text>
+  <g font-size="12.5" fill="#333">
+    <text x="1304" y="188">- Claude Sonnet 5</text>
+    <text x="1304" y="206">- runs in Singapore</text>
+    <text x="1304" y="224">- tokens/min quota =</text>
+    <text x="1315" y="242">the speed limit</text>
+  </g>
+
+  <!-- ALB + Cognito -->
+  <text x="264" y="496" font-size="15" font-weight="bold" fill="#222">ALB + Cognito</text>
+  <g font-size="12.5" fill="#333">
+    <text x="264" y="518">- HTTPS + login</text>
+    <text x="264" y="536">- company SSO (Microsoft</text>
+    <text x="275" y="554">Entra ID / Google)</text>
+  </g>
+
+  <!-- Fargate -->
+  <text x="524" y="496" font-size="15" font-weight="bold" fill="#222">ECS Fargate</text>
+  <g font-size="12.5" fill="#333">
+    <text x="524" y="518">- review page + API</text>
+    <text x="535" y="536">(NestJS)</text>
+    <text x="524" y="554">- 2 copies in 2 zones</text>
+  </g>
+
+  <!-- RDS -->
+  <text x="784" y="496" font-size="15" font-weight="bold" fill="#222">RDS PostgreSQL</text>
+  <g font-size="12.5" fill="#333">
+    <text x="784" y="518">- invoices, results,</text>
+    <text x="795" y="536">decisions, audit</text>
+    <text x="784" y="554">- RDS Proxy pools</text>
+    <text x="795" y="572">connections for Lambda</text>
+  </g>
+
+  <!-- Lambda -->
+  <text x="1044" y="496" font-size="15" font-weight="bold" fill="#222">AWS Lambda</text>
+  <g font-size="12.5" fill="#333">
+    <text x="1044" y="518">- 1 invoice per run:</text>
+    <text x="1055" y="536">AI read + 7 checks</text>
+    <text x="1044" y="554">- max N at a time (start 100)</text>
+    <text x="1044" y="572">- Node 24, timeout 5 min</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#333" stroke-width="1.3" fill="none" marker-end="url(#arr)">
+    <line x1="190" y1="180" x2="248" y2="180"/>
+    <polyline points="110,255 110,295 570,295 570,257"/>
+    <line x1="450" y1="198" x2="508" y2="198"/>
+    <line x1="710" y1="198" x2="1028" y2="198"/>
+    <line x1="1130" y1="255" x2="1130" y2="468"/>
+    <polyline points="1230,500 1390,500 1390,257"/>
+    <line x1="1028" y1="528" x2="972" y2="528"/>
+    <line x1="190" y1="528" x2="248" y2="528"/>
+    <line x1="450" y1="528" x2="508" y2="528"/>
+    <line x1="710" y1="528" x2="768" y2="528"/>
+    <line x1="650" y1="470" x2="650" y2="257"/>
+  </g>
+
+  <!-- arrow labels -->
+  <g font-size="12" fill="#555">
+    <text x="200" y="172">email</text>
+    <text x="330" y="289">e-invoice</text>
+    <text x="869" y="190" text-anchor="middle">new file event</text>
+    <text x="1138" y="360">max N at a time</text>
+    <text x="1398" y="360">extract</text>
+    <text x="1000" y="520" text-anchor="middle">results</text>
+    <text x="658" y="360">upload</text>
+  </g>
+
+  <!-- notes -->
+  <g font-size="13" fill="#444">
+    <text x="30" y="676"><tspan font-weight="bold">700 at once:</tspan> S3 and SQS take all 700 in seconds. Lambda reads N in parallel (start with 100, raise up to the Bedrock quota); the rest wait in SQS, nothing is lost.</text>
+    <text x="30" y="698"><tspan font-weight="bold">Time</tspan> ≈ 700 × seconds per invoice ÷ N, e.g. 700 × 20 s ÷ 100 ≈ 2–3 minutes (estimate, measure in the POC).</text>
+    <text x="30" y="732" fill="#666">Not shown: CloudWatch alarms (queue too old, DLQ not empty), KMS + Secrets Manager (encryption, no passwords in code), VPC endpoints, CDK (all built from code).</text>
+  </g>
+</svg>

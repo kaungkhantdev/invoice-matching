@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1540" height="500" viewBox="0 0 1540 500" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+  <rect width="1540" height="500" fill="#fff"/>
+
+  <text x="30" y="40" font-size="18" font-weight="bold" fill="#222">Invoice matching – system overview</text>
+
+  <!-- boxes: Intake 30..250, Queue 290..520, Read 560..790, Check 830..1210, Review 1250..1510 -->
+  <g fill="#fff" stroke="#444" stroke-width="1.3">
+    <rect x="30"   y="80" width="220" height="230" rx="3"/>
+    <rect x="290"  y="80" width="230" height="230" rx="3"/>
+    <rect x="560"  y="80" width="230" height="230" rx="3"/>
+    <rect x="830"  y="80" width="380" height="230" rx="3"/>
+    <rect x="1250" y="80" width="260" height="230" rx="3"/>
+  </g>
+
+  <!-- 1 Intake -->
+  <text x="44" y="108" font-size="16" font-weight="bold" fill="#222">1. Intake</text>
+  <g font-size="13" fill="#333">
+    <text x="44" y="138">- upload / drag and drop</text>
+    <text x="44" y="160">- email inbox</text>
+    <text x="44" y="182">- InvoiceNow e-invoice</text>
+    <text x="44" y="214">- file + row saved first,</text>
+    <text x="55" y="234">before any AI reads it</text>
+  </g>
+
+  <!-- 2 Queue -->
+  <text x="304" y="108" font-size="16" font-weight="bold" fill="#222">2. Queue</text>
+  <g font-size="13" fill="#333">
+    <text x="304" y="138">- N invoices read at a time</text>
+    <text x="304" y="160">- the rest wait, none lost</text>
+    <text x="304" y="182">- busy / timeout: retry</text>
+    <text x="315" y="202">after 30 s, then 60 s</text>
+    <text x="304" y="224">- 3 tries, then Review</text>
+    <text x="304" y="246">- survives a restart</text>
+  </g>
+
+  <!-- 3 Read -->
+  <text x="574" y="108" font-size="16" font-weight="bold" fill="#222">3. Read</text>
+  <g font-size="13" fill="#333">
+    <text x="574" y="138">- XML: parsed directly</text>
+    <text x="574" y="160">- PDF / photo / Excel: AI</text>
+    <text x="574" y="182">- output: one standard</text>
+    <text x="585" y="202">invoice (supplier, UEN,</text>
+    <text x="585" y="222">bank, PO, lines, totals)</text>
+    <text x="574" y="244">- AI unsure → flagged</text>
+  </g>
+
+  <!-- 4 Check: the 7 checks -->
+  <text x="844" y="108" font-size="16" font-weight="bold" fill="#222">4. Check – 7 rules (plain code)</text>
+  <g font-size="13" fill="#333">
+    <text x="844" y="138"><tspan font-weight="bold">0  Read clearly</tspan>  – is an invoice, AI not unsure</text>
+    <text x="844" y="161"><tspan font-weight="bold">1  Math adds up</tspan>  – lines, subtotal, GST 9%, total</text>
+    <text x="844" y="184"><tspan font-weight="bold">2  PO exists</tspan>  – same supplier and currency</text>
+    <text x="844" y="207"><tspan font-weight="bold">3  Lines match PO</tspan>  – price, qty ≤ received</text>
+    <text x="844" y="230"><tspan font-weight="bold">4  Total matches PO</tspan>  – at PO prices, no extra fees</text>
+    <text x="844" y="253"><tspan font-weight="bold">5  Not a duplicate</tspan>  – not recorded, not sent twice</text>
+    <text x="844" y="276"><tspan font-weight="bold">6  Supplier is real</tspan>  – bank account, UEN, GST no.</text>
+  </g>
+
+  <!-- 5 Review -->
+  <text x="1264" y="108" font-size="16" font-weight="bold" fill="#222">5. Review</text>
+  <g font-size="13" fill="#333">
+    <text x="1264" y="138"><tspan font-weight="bold">Matched</tspan> – all checks pass</text>
+    <text x="1264" y="166"><tspan font-weight="bold">Matched, note</tspan> – difference</text>
+    <text x="1275" y="186">≤ 1.00, or no GST charged</text>
+    <text x="1264" y="214"><tspan font-weight="bold">Review</tspan> – any check fails;</text>
+    <text x="1275" y="234">a person approves / rejects</text>
+    <text x="1264" y="262">- decision saved with time</text>
+    <text x="1275" y="282">and note</text>
+  </g>
+
+  <!-- arrows between steps -->
+  <g stroke="#333" stroke-width="1.3" marker-end="url(#arr)">
+    <line x1="250"  y1="195" x2="288"  y2="195"/>
+    <line x1="520"  y1="195" x2="558"  y2="195"/>
+    <line x1="790"  y1="195" x2="828"  y2="195"/>
+    <line x1="1210" y1="195" x2="1248" y2="195"/>
+  </g>
+
+  <!-- AI used by Read -->
+  <line x1="675" y1="310" x2="675" y2="358" stroke="#333" stroke-width="1.3" marker-end="url(#arr)"/>
+  <rect x="580" y="360" width="190" height="70" rx="3" fill="#fff" stroke="#444" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="675" y="386" font-size="14" font-weight="bold" fill="#222" text-anchor="middle">AI model</text>
+  <text x="675" y="406" font-size="13" fill="#555" text-anchor="middle">Claude (best accuracy)</text>
+  <text x="675" y="423" font-size="13" fill="#555" text-anchor="middle">or local (data stays in)</text>
+
+  <!-- data used by Check -->
+  <line x1="1020" y1="358" x2="1020" y2="312" stroke="#333" stroke-width="1.3" marker-end="url(#arr)"/>
+  <g stroke="#444" stroke-width="1.3" fill="#f4f4f4">
+    <path d="M920,370 v46 a100,11 0 0 0 200,0 v-46"/>
+    <ellipse cx="1020" cy="370" rx="100" ry="11"/>
+  </g>
+  <text x="1020" y="400" font-size="13" fill="#222" text-anchor="middle">suppliers · POs + deliveries</text>
+  <text x="1020" y="418" font-size="13" fill="#222" text-anchor="middle">recorded invoices</text>
+
+  <text x="30" y="478" font-size="13" fill="#666">The AI only extracts fields. Every pass/fail decision is plain code. Money is calculated in decimals, never floating point.</text>
+</svg>
