@@ -74,7 +74,7 @@ await writeFile(
     .text("UEN & GST Reg No: 201788888W", { align: "right" });
   doc.moveDown(2).font("Helvetica-Bold").fontSize(16).text("TAX INVOICE");
   doc.moveDown(0.5).font("Helvetica").fontSize(10)
-    .text("Bill To: Petal Lane Florist Pte. Ltd., 8 Sample Road, Singapore 000000")
+    .text("Bill To: Industrial & Commercial Facilities Management Pte Ltd, 202 Kallang Bahru #08-09A, Singapore 339339")
     .text("Invoice No.: KP-88131")
     .text("Invoice Date: 04/11/2026")
     .text("Terms: 30 days")
@@ -113,8 +113,8 @@ const ribbonSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1
     <text x="60" y="250" font-size="34" font-weight="bold">INVOICE</text>
     <text x="560" y="250" font-size="28">No. TBR-0457</text>
     <text x="60" y="300" font-size="24">Date: 06/11/2026</text>
-    <text x="60" y="340" font-size="24">To: Petal Lane Florist</text>
-    <text x="520" y="340" font-size="24">Your PO: PO-2026-0103</text>
+    <text x="520" y="300" font-size="24">Your PO: PO-2026-0103</text>
+    <text x="60" y="340" font-size="22">To: Industrial &amp; Commercial Facilities Mgm Pte Ltd</text>
     <line x1="60" y1="390" x2="840" y2="390" stroke="#1d2a52" stroke-width="2"/>
     <text x="60" y="425" font-size="24">Qty  Description               Unit $   Amount $</text>
     <line x1="60" y1="440" x2="840" y2="440" stroke="#1d2a52" stroke-width="1"/>
@@ -156,7 +156,7 @@ try {
   ws.addRow(["Invoice No:", "JCC-1107"]);
   ws.addRow(["Date:", "05/11/2026"]);
   ws.addRow(["Your PO:", "PO-2026-0104"]);
-  ws.addRow(["Customer:", "Petal Lane Florist Pte. Ltd."]);
+  ws.addRow(["Customer:", "Industrial & Commercial Facilities Management Pte Ltd"]);
   ws.addRow([]);
   ws.addRow(["S/N", "Service", "Trips", "Rate (S$)", "Line Total (S$)"]);
   ws.addRow([1, "Cold-chain delivery trip (Nov wk1-2)", 8, 120, 960]);
@@ -182,7 +182,7 @@ await writeFile(
     <text x="40" y="170" font-size="26" font-weight="bold">TAX INVOICE  INV-24063</text>
     <text x="40" y="210" font-size="16">Date: 10/11/2026</text>
     <text x="40" y="235" font-size="16">Due: 10/12/2026</text>
-    <text x="420" y="210" font-size="16">Bill to: Petal Lane Florist Pte. Ltd.</text>
+    <text x="420" y="210" font-size="16">Bill to: Industrial &amp; Commercial Facilities Mgt PL</text>
     <text x="420" y="235" font-size="16">PO Ref: PO-2026-0105</text>
     <rect x="40" y="280" width="720" height="34" fill="#eef5ef"/>
     <text x="50" y="303" font-size="15" font-weight="bold">Description</text>

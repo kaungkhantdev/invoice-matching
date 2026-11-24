@@ -1,5 +1,9 @@
 import { Injectable } from "@nestjs/common";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { config, type AiProvider } from "../config.js";
+import { BedrockExtractor } from "./bedrock.extractor.js";
 import { ClaudeExtractor } from "./claude.extractor.js";
 import type { InvoiceExtractor } from "./extractor.js";
 import { LocalLlmExtractor } from "./local-llm.extractor.js";
@@ -12,8 +16,26 @@ export interface ProviderStatus {
   hint: string;
 }
 
+/** "ap-southeast-1" → "Singapore (ap-southeast-1)". */
+export const regionName = (region: string) => (region === "ap-southeast-1" ? `Singapore (${region})` : region);
+
 /**
- * Both AIs, created when first used. AI_PROVIDER picks the default; a run can ask for the other one.
+ * Is an AWS login set up here? (Bedrock and Textract both need one.) A quick local look only: whether it is
+ * still valid (e.g. an expired SSO session) shows on the first read, with a plain-words error.
+ */
+export function awsLoginFound(env: NodeJS.ProcessEnv = process.env, home = homedir()): boolean {
+  const fromEnv = [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_PROFILE",
+    "AWS_WEB_IDENTITY_TOKEN_FILE",
+    "AWS_CONTAINER_CREDENTIALS_FULL_URI",
+    "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI",
+  ].some((name) => Boolean(env[name]));
+  return fromEnv || existsSync(join(home, ".aws", "credentials")) || existsSync(join(home, ".aws", "config"));
+}
+
+/**
+ * All AIs, created when first used. AI_PROVIDER picks the default; a run can ask for another one.
  */
 @Injectable()
 export class ExtractorRegistry {
@@ -26,14 +48,22 @@ export class ExtractorRegistry {
   get(provider: AiProvider = config.aiProvider): InvoiceExtractor {
     let extractor = this.cache.get(provider);
     if (!extractor) {
-      extractor = provider === "local" ? new LocalLlmExtractor() : new ClaudeExtractor();
+      extractor =
+        provider === "bedrock" ? new BedrockExtractor() : provider === "local" ? new LocalLlmExtractor() : new ClaudeExtractor();
       this.cache.set(provider, extractor);
     }
     return extractor;
   }
 
-  /** Is each AI usable right now? (Claude: key set. Local: server answers and has the model.) */
+  /** Is each AI usable right now? (Bedrock: AWS login set up. Claude: key set. Local: server answers and has the model.) */
   async status(): Promise<ProviderStatus[]> {
+    const aws = awsLoginFound();
+    const bedrock: ProviderStatus = {
+      provider: "bedrock",
+      model: config.bedrock.model,
+      ready: aws,
+      hint: aws ? regionName(config.bedrock.region) : 'No AWS login found: run "aws configure" or "aws sso login"',
+    };
     const hasKey = Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
     const claude: ProviderStatus = {
       provider: "claude",
@@ -41,7 +71,7 @@ export class ExtractorRegistry {
       ready: hasKey,
       hint: hasKey ? "API key set" : "Set ANTHROPIC_API_KEY in .env and restart",
     };
-    return [claude, await this.localStatus()];
+    return [bedrock, claude, await this.localStatus()];
   }
 
   private async localStatus(): Promise<ProviderStatus> {

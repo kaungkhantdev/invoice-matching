@@ -1,0 +1,25 @@
+[
+  {
+    "poNumber": "PO-EXAMPLE-2CSS2-2026-10", "supplierId": "SUP-RENTOKIL", "currency": "SGD",
+    "site": "2 Changi South Street 2, Singapore 486759", "period": "2026-10",
+    "lines": [
+      { "description": "Signature Dual Sanitiser - White", "orderedQty": "21", "amount": "63.00" },
+      { "description": "AFSD AirguardTec Disp", "orderedQty": "6", "amount": "13.50" },
+      { "description": "HWSC EcoWash Pearl Creme -5L", "orderedQty": "5", "amount": "3.75" },
+      { "description": "60 X 85 Black/White Classic", "orderedQty": "5", "amount": "17.50" },
+      { "description": "85 X 150 Black/White Classic", "orderedQty": "1", "amount": "10.00" },
+      { "description": "115 X 180 Red/Citrine Welcome", "orderedQty": "1", "amount": "7.00" },
+      { "description": "Dual Paper 170M 1Ply Livi", "orderedQty": "10", "amount": "26.67" },
+      { "description": "Sani Bin Pedal Blue-OSS", "orderedQty": "6", "amount": "21.60" },
+      { "description": "JRT Jumbo Roll 600g", "orderedQty": "56", "amount": "24.27" }
+    ]
+  },
+  {
+    "poNumber": "PO-EXAMPLE-SIGLAP-2026-08", "supplierId": "SUP-MASANDAO", "currency": "SGD",
+    "site": "55 Siglap Centre, Singapore 455871", "period": "2026-08",
+    "lines": [
+      { "description": "Air Spray Fragrance - 6000", "orderedQty": "8", "unitPrice": "2.80" },
+      { "description": "Lady Sanitary Bin Pedal", "orderedQty": "14", "unitPrice": "3.80" }
+    ]
+  }
+]

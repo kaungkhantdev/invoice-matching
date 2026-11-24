@@ -19,8 +19,8 @@ import type { Response } from "express";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { AiProvider } from "../invoice-matching/config.js";
-import { ExtractorRegistry } from "../invoice-matching/reader/extractor.registry.js";
+import { AI_PROVIDERS, config, type AiProvider } from "../invoice-matching/config.js";
+import { ExtractorRegistry, awsLoginFound, regionName } from "../invoice-matching/reader/extractor.registry.js";
 import { excelToText, prepareForAi } from "../invoice-matching/reader/file-prep.js";
 import { pdfPageCount, renderPdfPage } from "../invoice-matching/reader/pdf.js";
 import { InvoiceStore, MAX_FILE_BYTES, type Entry } from "./invoice-store.service.js";
@@ -40,7 +40,7 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 function provider(value: unknown, fallback: AiProvider): AiProvider {
-  return value === "claude" || value === "local" ? value : fallback;
+  return (AI_PROVIDERS as readonly unknown[]).includes(value) ? (value as AiProvider) : fallback;
 }
 
 /** The short row shown in the list. */
@@ -90,6 +90,10 @@ export class InvoicesController {
       defaultProvider: this.extractors.defaultProvider,
       providers: await this.extractors.status(),
       queue: this.store.queueStats(),
+      // Textract runs for Bedrock and the Claude API; never for the local LLM (nothing leaves this machine).
+      ocr: config.textract.enabled
+        ? { name: "Amazon Textract", region: regionName(config.textract.region), ready: awsLoginFound(), skippedFor: ["local"] }
+        : null,
     };
   }
 

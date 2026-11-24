@@ -7,7 +7,7 @@
     <text x="40" y="170" font-size="26" font-weight="bold">TAX INVOICE  INV-24063</text>
     <text x="40" y="210" font-size="16">Date: 10/11/2026</text>
     <text x="40" y="235" font-size="16">Due: 10/12/2026</text>
-    <text x="420" y="210" font-size="16">Bill to: Petal Lane Florist Pte. Ltd.</text>
+    <text x="420" y="210" font-size="16">Bill to: Industrial &amp; Commercial Facilities Mgt PL</text>
     <text x="420" y="235" font-size="16">PO Ref: PO-2026-0105</text>
     <rect x="40" y="280" width="720" height="34" fill="#eef5ef"/>
     <text x="50" y="303" font-size="15" font-weight="bold">Description</text>

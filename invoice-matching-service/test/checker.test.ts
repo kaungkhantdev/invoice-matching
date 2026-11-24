@@ -44,7 +44,7 @@ function invoice(change: (i: StandardInvoice) => void = () => {}): StandardInvoi
     fees: "0",
     discounts: "0",
     total: "1188.10",
-    uncertainFields: [],
+    uncertainFields: [], billTo: "Industrial & Commercial Facilities Management Pte Ltd", site: null, servicePeriod: null, serviceRecords: [], otherInvoicesInFile: [],
   };
   change(inv);
   return inv;

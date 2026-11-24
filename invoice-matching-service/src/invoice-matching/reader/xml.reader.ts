@@ -31,7 +31,7 @@ export class XmlReader {
     parseTagValue: false, // keep amounts as strings
     parseAttributeValue: false,
     isArray: (name) =>
-      ["InvoiceLine", "CreditNoteLine", "TaxTotal", "PartyTaxScheme", "PaymentMeans"].includes(name),
+      ["InvoiceLine", "CreditNoteLine", "TaxTotal", "PartyTaxScheme", "PaymentMeans", "Delivery", "InvoicePeriod"].includes(name),
   });
 
   parse(xml: string): StandardInvoice {
@@ -49,6 +49,9 @@ export class XmlReader {
       (root.TaxTotal ?? []).find((t: Node) => t.TaxAmount?.["@_currencyID"] === currency) ?? (root.TaxTotal ?? [])[0];
     const totals: Node = root.LegalMonetaryTotal ?? {};
     const lines: Node[] = root.InvoiceLine ?? root.CreditNoteLine ?? [];
+    const customer: Node = root.AccountingCustomerParty?.Party ?? {};
+    const deliveryAddress: Node = (root.Delivery ?? [])[0]?.DeliveryLocation?.Address;
+    const period: Node = (root.InvoicePeriod ?? [])[0];
 
     return {
       documentType: isCreditNote ? "credit_note" : "tax_invoice",
@@ -67,6 +70,17 @@ export class XmlReader {
         accountNumber: txt(account?.ID),
         swift: txt(account?.FinancialInstitutionBranch?.ID),
       },
+      billTo: txt(customer.PartyLegalEntity?.RegistrationName) ?? txt(customer.PartyName?.Name),
+      site: deliveryAddress
+        ? [deliveryAddress.StreetName, deliveryAddress.AdditionalStreetName, deliveryAddress.CityName, deliveryAddress.PostalZone]
+            .map(txt)
+            .filter(Boolean)
+            .join(", ") || null
+        : null,
+      // Peppol allows a period with only a start or only an end date.
+      servicePeriod: (txt(period?.StartDate) ?? txt(period?.EndDate))?.slice(0, 7) ?? null,
+      serviceRecords: [],
+      otherInvoicesInFile: [],
       invoiceNumber: txt(root.ID) ?? "",
       invoiceDate: txt(root.IssueDate),
       dueDate: txt(root.DueDate),

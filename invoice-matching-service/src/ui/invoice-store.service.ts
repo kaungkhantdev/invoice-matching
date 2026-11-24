@@ -4,8 +4,8 @@ import { existsSync } from "node:fs";
 import { copyFile, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { AccountingSource } from "../invoice-matching/accounting/accounting.source.js";
-import { config, type AiProvider } from "../invoice-matching/config.js";
-import { emptySeen, MatchingService, type InvoiceResult, type ReadResult } from "../invoice-matching/matching.service.js";
+import { AI_PROVIDERS, config, type AiProvider } from "../invoice-matching/config.js";
+import { emptySeen, MatchingService, type Claims, type InvoiceResult, type ReadResult } from "../invoice-matching/matching.service.js";
 import { SUPPORTED } from "../invoice-matching/reader/file-prep.js";
 
 export type EntryState = "QUEUED" | "READING" | "DONE";
@@ -35,6 +35,8 @@ export interface Entry {
   retryError: string | null;
   read: ReadResult | null;
   result: InvoiceResult | null;
+  /** While it is read again: what the last result held (invoice key, PO), so later copies stay flagged meanwhile. */
+  held?: Claims | null;
   decision: Decision | null;
   updatedAt: number;
 }
@@ -64,8 +66,8 @@ export class InvoiceStore implements OnModuleInit {
   private saveTimer: NodeJS.Timeout | null = null;
   private saving: Promise<void> = Promise.resolve();
   private rechecking: Promise<void> = Promise.resolve();
-  private readonly waiting: Record<AiProvider, Entry[]> = { claude: [], local: [] };
-  private readonly running: Record<AiProvider, number> = { claude: 0, local: 0 };
+  private readonly waiting: Record<AiProvider, Entry[]> = { bedrock: [], claude: [], local: [] };
+  private readonly running: Record<AiProvider, number> = { bedrock: 0, claude: 0, local: 0 };
 
   constructor(
     private readonly matching: MatchingService,
@@ -104,6 +106,7 @@ export class InvoiceStore implements OnModuleInit {
   /** How many are waiting / being read per AI (for the status line). */
   queueStats() {
     return {
+      bedrock: { waiting: this.waiting.bedrock.length, reading: this.running.bedrock, limit: config.concurrency.bedrock },
       claude: { waiting: this.waiting.claude.length, reading: this.running.claude, limit: config.concurrency.claude },
       local: { waiting: this.waiting.local.length, reading: this.running.local, limit: config.concurrency.local },
     };
@@ -162,11 +165,12 @@ export class InvoiceStore implements OnModuleInit {
     return this.add(files, provider);
   }
 
-  /** Read the file again, e.g. with the other AI. */
+  /** Read the file again, e.g. with another AI. (While the app runs, Textract's pages are reused, not paid for again.) */
   reread(id: string, provider: AiProvider): Entry {
     const entry = this.get(id);
     if (entry.state !== "DONE") return entry;
-    Object.assign(entry, { provider, attempts: 0, retryError: null, read: null, result: null, decision: null, updatedAt: Date.now() });
+    const held = entry.result ? this.matching.claims(entry.result) : null;
+    Object.assign(entry, { provider, attempts: 0, retryError: null, read: null, result: null, held, decision: null, updatedAt: Date.now() });
     this.enqueue(entry);
     void this.recheck(entry.seq, false);
     return entry;
@@ -188,8 +192,7 @@ export class InvoiceStore implements OnModuleInit {
 
   async clear(): Promise<void> {
     this.entries = [];
-    this.waiting.claude = [];
-    this.waiting.local = [];
+    for (const provider of AI_PROVIDERS) this.waiting[provider] = [];
     await rm(this.filesDir, { recursive: true, force: true });
     await mkdir(this.filesDir, { recursive: true });
     this.saveSoon();
@@ -214,7 +217,9 @@ export class InvoiceStore implements OnModuleInit {
     for (const e of this.list()) {
       if (e.state !== "DONE" || !e.read) {
         // Not read yet, but its file fingerprint is known: a later identical file is a duplicate right away.
-        if (!seen.byHash.has(e.hash)) seen.byHash.set(e.hash, e.file);
+        // Being read again: it still holds its invoice and PO until the new result is in.
+        if (e.held) this.matching.remember(seen, e.file, e.hash, e.held);
+        else if (!seen.byHash.has(e.hash)) seen.byHash.set(e.hash, e.file);
         continue;
       }
       if (e.seq < fromSeq && e.result) {
@@ -297,6 +302,7 @@ export class InvoiceStore implements OnModuleInit {
 
     entry.read = read;
     entry.retryError = null;
+    entry.held = null;
     entry.state = "DONE";
     entry.updatedAt = Date.now();
     await this.recheck(entry.seq, false);

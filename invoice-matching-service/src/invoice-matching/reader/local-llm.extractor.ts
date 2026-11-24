@@ -2,7 +2,7 @@ import { Agent } from "undici";
 import { z } from "zod";
 import { config, type LocalApi } from "../config.js";
 import { InvoiceSchema, type StandardInvoice } from "../invoice.schema.js";
-import { InvoiceExtractor, RetryableError, SYSTEM_PROMPT, USER_INSTRUCTION } from "./extractor.js";
+import { InvoiceExtractor, RetryableError, SYSTEM_PROMPT, instructionWithOcr } from "./extractor.js";
 import type { Prepared } from "./file-prep.js";
 import { pdfForLocalLlm } from "./pdf.js";
 
@@ -43,9 +43,9 @@ export class LocalLlmExtractor extends InvoiceExtractor {
     super();
   }
 
-  async extract(fileName: string, prepared: Prepared): Promise<StandardInvoice> {
+  async extract(fileName: string, prepared: Prepared, ocr?: string | null): Promise<StandardInvoice> {
     const input = await this.toInput(fileName, prepared);
-    const userText = [input.text ? `<file name="${fileName}">\n${input.text}\n</file>` : null, USER_INSTRUCTION]
+    const userText = [input.text ? `<file name="${fileName}">\n${input.text}\n</file>` : null, instructionWithOcr(ocr)]
       .filter(Boolean)
       .join("\n\n");
     const messages: Msg[] = [

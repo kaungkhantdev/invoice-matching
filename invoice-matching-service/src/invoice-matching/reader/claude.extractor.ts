@@ -1,16 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { config } from "../config.js";
-import { InvoiceSchema, type StandardInvoice } from "../invoice.schema.js";
-import { InvoiceExtractor, RetryableError, SYSTEM_PROMPT, USER_INSTRUCTION } from "./extractor.js";
+import type { StandardInvoice } from "../invoice.schema.js";
+import { INVOICE_FORMAT, invoiceContent, invoiceFromAnswer } from "./claude-format.js";
+import { InvoiceExtractor, RetryableError, SYSTEM_PROMPT } from "./extractor.js";
 import type { Prepared } from "./file-prep.js";
 
-/** Our standard invoice as the JSON schema Claude must answer in (converted by the SDK's helper). */
-const INVOICE_FORMAT = { type: "json_schema" as const, schema: betaZodOutputFormat(InvoiceSchema).schema };
-
 /**
- * AI_PROVIDER=claude — reads invoices with the Claude API (needs ANTHROPIC_API_KEY).
- * Accepts PDFs directly, so no PDF conversion is needed.
+ * AI_PROVIDER=claude — reads invoices with the Claude API directly (needs ANTHROPIC_API_KEY).
+ * Handy for trying the app without AWS. Production uses Claude on Amazon Bedrock (AI_PROVIDER=bedrock).
  */
 export class ClaudeExtractor extends InvoiceExtractor {
   readonly provider = "claude" as const;
@@ -23,23 +20,7 @@ export class ClaudeExtractor extends InvoiceExtractor {
     return this.client;
   }
 
-  async extract(fileName: string, prepared: Prepared): Promise<StandardInvoice> {
-    const content: Anthropic.Beta.BetaContentBlockParam[] = [];
-    if (prepared.kind === "pdf") {
-      content.push({
-        type: "document",
-        source: { type: "base64", media_type: "application/pdf", data: prepared.data.toString("base64") },
-      });
-    } else if (prepared.kind === "image") {
-      content.push({
-        type: "image",
-        source: { type: "base64", media_type: prepared.mediaType, data: prepared.data.toString("base64") },
-      });
-    } else {
-      content.push({ type: "text", text: `<file name="${fileName}">\n${prepared.text}\n</file>` });
-    }
-    content.push({ type: "text", text: USER_INSTRUCTION });
-
+  async extract(fileName: string, prepared: Prepared, ocr?: string | null): Promise<StandardInvoice> {
     let response;
     try {
       // create() (not parse()): parse() throws on a bad answer before we can see why it stopped.
@@ -51,16 +32,17 @@ export class ClaudeExtractor extends InvoiceExtractor {
         fallbacks: "default",
         output_config: { effort: config.claude.effort, format: INVOICE_FORMAT },
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content }],
+        messages: [{ role: "user", content: invoiceContent(fileName, prepared, ocr) }],
       });
     } catch (error) {
       if (error instanceof Anthropic.AuthenticationError) {
-        throw new Error("Anthropic API key missing or invalid: set ANTHROPIC_API_KEY in .env (or use AI_PROVIDER=local)");
+        throw new Error("Anthropic API key missing or invalid: set ANTHROPIC_API_KEY in .env (or use AI_PROVIDER=bedrock)");
       }
       if (
         error instanceof Anthropic.RateLimitError ||
         error instanceof Anthropic.InternalServerError ||
-        error instanceof Anthropic.APIConnectionError
+        error instanceof Anthropic.APIConnectionError ||
+        error instanceof Anthropic.RequestTimeoutError
       ) {
         throw new RetryableError(`Claude API busy or unreachable: ${error.message}`);
       }
@@ -68,27 +50,10 @@ export class ClaudeExtractor extends InvoiceExtractor {
         throw new Error(`Claude API error ${error.status ?? ""}: ${error.message}`);
       }
       if (error instanceof Error && /api.?key|credential|auth/i.test(error.message)) {
-        throw new Error("Anthropic API key missing: set ANTHROPIC_API_KEY in .env (or use AI_PROVIDER=local)");
+        throw new Error("Anthropic API key missing: set ANTHROPIC_API_KEY in .env (or use AI_PROVIDER=bedrock)");
       }
       throw error;
     }
-
-    if (response.stop_reason === "refusal") throw new Error("AI declined to read this file");
-    if (response.stop_reason === "max_tokens") throw new Error("AI answer was cut off (too long)");
-    // The answer is the last text block (after a fallback there can be more than one).
-    const text = response.content.findLast((b) => b.type === "text")?.text;
-    if (!text) throw new Error("AI gave no answer");
-    let data: unknown;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("AI answer wasn't valid JSON");
-    }
-    const parsed = InvoiceSchema.safeParse(data);
-    if (!parsed.success) {
-      const issues = parsed.error.issues.slice(0, 3).map((i) => `${i.path.join(".")}: ${i.message}`);
-      throw new Error(`AI answer didn't fit our invoice structure (${issues.join("; ")})`);
-    }
-    return parsed.data;
+    return invoiceFromAnswer(response);
   }
 }

@@ -2,7 +2,7 @@
 
 > **Any format in → our standard invoice → check against the PO and the delivery → people only look at the problems.**
 >
-> **AI reads. Rules decide.**
+> **Textract reads. Bedrock understands. Rules decide.**
 >
 > **Start here:** [Setup & run](invoice-matching-service/README.md) · [System design](docs/SYSTEM-DESIGN.md) · [Infrastructure on AWS](docs/INFRASTRUCTURE-AWS.md)
 
@@ -22,9 +22,10 @@
 ### 2. MAP: fill in OUR standard invoice
 
 - **Supplier:** name, UEN, GST registration no., bank account holder, account number, SWIFT (or PayNow UEN)
-- **Header:** invoice #, invoice date, due date, **PO number**
+- **Header:** invoice #, invoice date, due date, **PO number**, **billed to**, **delivery site**, **month** it is for
 - **Lines:** description, qty/hours, unit price, amount
 - **Totals:** subtotal, GST, fees, discounts, total, **currency**
+- **Proof attached:** service reports / cards / delivery orders: site, dates, signed, items not done
 - **Original file:** always keep a link to it
 
 Watch out for:
@@ -36,10 +37,10 @@ Watch out for:
 ### 3. MATCH: the 6 checks
 
 1. **Math adds up:** qty × price = amount; subtotal + GST + fees − discounts = total; GST = 9% of the taxable amount
-2. **PO exists**, belongs to this supplier, and uses the same currency
-3. **Lines match:** price = PO price, and qty ≤ qty received (3-way match with the delivery note)
+2. **PO exists** (found by the PO number, or by supplier + site + month), belongs to this supplier, same currency, **billed to us**, same **site** and **month**
+3. **Lines match:** price = PO price; qty ≤ received (goods, 3-way match with the delivery note) or ≤ ordered plus a **signed service record** in that month (services)
 4. **Total matches**, allowing a small rounding difference that we set (e.g. ±S$1)
-5. **Not a duplicate:** have we seen this supplier + invoice # before?
+5. **Not a duplicate:** have we seen this supplier + invoice # before, or was the same monthly service PO already billed?
 6. **Supplier is real:** the bank account is the one on file, and if GST is charged, the GST registration no. is valid (we can look it up on the IRAS website)
 
 ### 4. FLAG: sort the result
@@ -85,5 +86,6 @@ Ways to use less AI:
 ## Suggested start
 
 1. Turn on receiving InvoiceNow invoices in our accounting software.
-2. For everything else: one inbox → reader → our standard fields → 6 checks → review list.
-3. **Pilot:** take about 50 real invoices from our top suppliers, in mixed formats. Measure how many fields come out right and what % match automatically before going live.
+2. For everything else: one inbox → reader (**Amazon Textract** for the text + **Claude on Amazon Bedrock** for the meaning, both in Singapore) → our standard fields → checks → review list.
+3. **PO number on every invoice:** suppliers are asked to quote the PO our team keyed (from November 2026). Until then, invoices are matched by supplier + site + month, with a note.
+4. **Pilot:** take about 50 real invoices from our top suppliers, in mixed formats. Measure how many fields come out right and what % match automatically before going live.

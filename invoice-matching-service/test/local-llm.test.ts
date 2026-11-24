@@ -21,7 +21,7 @@ const good: StandardInvoice = {
   fees: "0",
   discounts: "0",
   total: "260.00",
-  uncertainFields: [],
+  uncertainFields: [], billTo: "Industrial & Commercial Facilities Management Pte Ltd", site: null, servicePeriod: null, serviceRecords: [], otherInvoicesInFile: [],
 };
 
 type Call = { url: string; body: Record<string, unknown>; headers: Record<string, string> };

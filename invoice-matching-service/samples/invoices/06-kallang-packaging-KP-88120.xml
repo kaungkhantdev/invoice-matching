@@ -26,8 +26,8 @@
   </cac:AccountingSupplierParty>
   <cac:AccountingCustomerParty>
     <cac:Party>
-      <cac:PartyName><cbc:Name>Petal Lane Florist Pte. Ltd.</cbc:Name></cac:PartyName>
-      <cac:PartyLegalEntity><cbc:RegistrationName>Petal Lane Florist Pte. Ltd.</cbc:RegistrationName></cac:PartyLegalEntity>
+      <cac:PartyName><cbc:Name>Industrial &amp; Commercial Facilities Management Pte Ltd</cbc:Name></cac:PartyName>
+      <cac:PartyLegalEntity><cbc:RegistrationName>Industrial &amp; Commercial Facilities Management Pte Ltd</cbc:RegistrationName></cac:PartyLegalEntity>
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>

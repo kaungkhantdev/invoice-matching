@@ -31,7 +31,7 @@ const OUTCOME = {
   REVIEW: { label: "Review", cls: "bad" },
 };
 const MARK = { pass: "✓", note: "!", fail: "✗", skip: "–" };
-const PROVIDER_NAME = { claude: "Claude API", local: "Local LLM" };
+const PROVIDER_NAME = { bedrock: "Amazon Bedrock", claude: "Claude API", local: "Local LLM" };
 
 const state = {
   invoices: [],
@@ -80,7 +80,7 @@ function showMessage(text, kind = "error") {
   box.className = `message${kind === "info" ? " info" : ""}`;
 }
 
-const chosenProvider = () => $("#provider").value || state.status?.defaultProvider || "claude";
+const chosenProvider = () => $("#provider").value || state.status?.defaultProvider || "bedrock";
 
 function money(inv, value) {
   return value == null ? "–" : `${inv?.currency ?? ""} ${value}`.trim();
@@ -109,7 +109,13 @@ function renderProviderStatus() {
   $("#provider-dot").className = `dot ${p.ready ? "ok" : "bad"}`;
   const q = state.status.queue?.[p.provider];
   const queue = q && (q.waiting || q.reading) ? ` · queue: ${q.reading} reading (max ${q.limit}), ${q.waiting} waiting` : "";
-  $("#provider-hint").textContent = (p.ready ? p.hint : `Not ready · ${p.hint}`) + queue;
+  const o = state.status.ocr;
+  const ocr = !o
+    ? " · OCR off"
+    : o.skippedFor?.includes(p.provider)
+      ? " · no OCR (stays on this machine)"
+      : ` · OCR: ${o.name}${o.ready ? "" : " (no AWS login found)"}`;
+  $("#provider-hint").textContent = (p.ready ? p.hint : `Not ready · ${p.hint}`) + queue + ocr;
 }
 
 // ── list ─────────────────────────────────────────────────────────────
@@ -259,7 +265,8 @@ function ringStat(done, total, label) {
 function summaryBlock(d) {
   const checks = (d.result?.checks ?? []).filter((c) => c.status !== "skip");
   const passed = checks.filter((c) => c.status !== "fail").length;
-  const lines = d.result?.context?.lines ?? [];
+  // Only against a PO, and without the free 0.00 lines (they need no PO).
+  const lines = d.result?.context?.po ? (d.result.context.lines ?? []).filter((l) => !l.free) : [];
   const goodLines = lines.filter((l) => l.po && l.priceStatus !== "fail" && l.qtyStatus === "pass").length;
   return h(
     "section",
@@ -273,6 +280,14 @@ function linesBlock(d) {
   const ctx = d.result?.context;
   if (!ctx?.po || !ctx.lines.length) return null;
   const items = ctx.lines.map((l) => {
+    if (l.free) {
+      return h(
+        "div",
+        { class: "bar-item" },
+        h("div", { class: "bar-head" }, h("span", {}, l.description), h("b", {}, l.quantity)),
+        h("div", { class: "bar-note" }, "0.00 · not on the PO (no charge)"),
+      );
+    }
     if (!l.po) {
       return h(
         "div",
@@ -282,30 +297,35 @@ function linesBlock(d) {
         h("div", { class: "bar-note bad" }, "Not on the PO"),
       );
     }
-    const invoiced = Number(l.quantity);
-    const received = Number(l.po.receivedQty);
-    const share = received > 0 ? Math.min(1, invoiced / received) : 1;
+    // Goods: compared with what was received. Services: with what the PO orders (the proof is the service record).
+    const cap = l.po.receivedQty ?? l.po.orderedQty;
+    const capWord = l.po.receivedQty != null ? "received" : "on the PO";
+    // Several invoice lines can bill one PO line: compare their total with the cap.
+    const invoiced = Number(l.invoicedOnPoLine ?? l.quantity);
+    const share = Number(cap) > 0 ? Math.min(1, invoiced / Number(cap)) : 1;
     const over = l.qtyStatus === "fail";
     const notes = [];
-    if (over) notes.push(h("div", { class: "bar-note bad" }, `Invoiced ${l.quantity}, only ${l.po.receivedQty} received`));
+    const total = l.invoicedOnPoLine && l.invoicedOnPoLine !== l.quantity ? ` (${l.invoicedOnPoLine} in total)` : "";
+    if (over) notes.push(h("div", { class: "bar-note bad" }, `Invoiced ${l.quantity}${total}, only ${cap} ${capWord}`));
     if (l.priceStatus !== "pass") {
-      notes.push(
-        h(
-          "div",
-          { class: `bar-note ${l.priceStatus === "fail" ? "bad" : "note"}` },
-          `Price ${l.invoicePriceExTax}, PO says ${l.po.unitPrice} (${l.priceEffect} on ${l.quantity})`,
-        ),
-      );
+      const text =
+        l.invoicePriceExTax != null && l.po.amount == null && l.po.unitPrice != null
+          ? `Price ${l.invoicePriceExTax}, PO says ${l.po.unitPrice} (${l.priceEffect} on ${l.quantity})`
+          : l.po.amount == null && l.po.unitPrice == null
+            ? "The PO line has no price"
+            : `Amount ${l.invoiceAmountExTax}, PO allows ${l.poAllowed} for ${l.quantity}${l.priceEffect ? ` (difference ${l.priceEffect})` : ""}`;
+      notes.push(h("div", { class: `bar-note ${l.priceStatus === "fail" ? "bad" : "note"}` }, text));
     }
     return h(
       "div",
       { class: "bar-item" },
-      h("div", { class: "bar-head" }, h("span", { title: `PO: ${l.po.description}` }, l.description), h("b", {}, `${l.quantity} / ${l.po.receivedQty}`)),
-      h("div", { class: `bar${over ? " over" : ""}`, role: "img", "aria-label": `${l.quantity} invoiced of ${l.po.receivedQty} received` }, h("i", { style: `width:${Math.round(share * 100)}%` })),
+      h("div", { class: "bar-head" }, h("span", { title: `PO: ${l.po.description}` }, l.description), h("b", {}, `${l.quantity} / ${cap}`)),
+      h("div", { class: `bar${over ? " over" : ""}`, role: "img", "aria-label": `${l.quantity} invoiced of ${cap} ${capWord}` }, h("i", { style: `width:${Math.round(share * 100)}%` })),
       notes,
     );
   });
-  return h("section", { class: "block" }, h("p", { class: "label" }, `Invoiced vs received · ${ctx.po.poNumber}`), items);
+  const how = ctx.poFoundBy === "site and month" ? " (found by site + month)" : "";
+  return h("section", { class: "block" }, h("p", { class: "label" }, `Invoiced vs PO · ${ctx.po.poNumber}${how}`), items);
 }
 
 function checksBlock(d) {
@@ -362,8 +382,26 @@ function fieldsBlock(d) {
       field("Supplier", inv.supplier.name, h("span", { class: "muted" }, s ? " · on our list" : " · not on our list")),
       compared("UEN", inv.supplier.uen, s?.uen ?? null, (a, b) => ident(a) === ident(b)),
       compared("GST reg. no.", inv.supplier.gstRegNo, s ? (s.gstRegNo ?? "not GST-registered") : null, (a, b) => ident(a) === ident(b)),
-      compared("Bank account", inv.bank.accountNumber, s?.bankAccountNumber ?? null, (a, b) => digits(a) === digits(b)),
-      field("PO", inv.poNumber),
+      compared("Bank account", inv.bank.accountNumber, s ? [].concat(s.bankAccountNumber).join(" or ") : null, (a, b) =>
+        b.split(" or ").some((x) => digits(a) === digits(x)),
+      ),
+      field("Billed to", inv.billTo),
+      field("Site", inv.site),
+      field(
+        "For month",
+        d.result.context?.month?.value ?? inv.servicePeriod ?? null,
+        d.result.context?.month?.from && d.result.context.month.from !== "stated"
+          ? h("span", { class: "muted" }, ` · from the ${d.result.context.month.from}`)
+          : null,
+      ),
+      field(
+        "PO",
+        inv.poNumber ?? (d.result.context?.po ? null : "none on the invoice"),
+        d.result.context?.poFoundBy === "site and month"
+          ? h("span", { class: "muted" }, ` · not on the invoice · found ${d.result.context.po.poNumber} by site + month`)
+          : null,
+      ),
+      field("Service proof", serviceProofText(inv.serviceRecords)),
       field("Invoice date", inv.invoiceDate, inv.dueDate ? h("span", { class: "muted" }, ` · due ${inv.dueDate}`) : null),
       field(
         "Total",
@@ -373,6 +411,16 @@ function fieldsBlock(d) {
       field("Read by", readByText(d), d.seconds != null ? h("span", { class: "muted" }, ` · ${d.seconds}s`) : null),
     ),
   );
+}
+
+/** e.g. "3 records · 3 signed · 16 Oct–30 Oct 2026" */
+function serviceProofText(records) {
+  if (!records?.length) return "none attached";
+  const signed = records.filter((r) => r.signed).length;
+  const dates = records.flatMap((r) => r.dates).sort();
+  const span = dates.length ? ` · ${dates[0]}${dates.length > 1 ? ` to ${dates.at(-1)}` : ""}` : "";
+  const notDone = records.flatMap((r) => r.notDone);
+  return `${records.length} record${records.length > 1 ? "s" : ""} · ${signed} signed${span}${notDone.length ? ` · not done: ${notDone.join("; ")}` : ""}`;
 }
 
 function readByText(d) {
@@ -441,7 +489,7 @@ function rereadBlock(d) {
   return h(
     "section",
     { class: "block" },
-    h("p", { class: "label" }, "Read again · compare the two AIs"),
+    h("p", { class: "label" }, "Read again · compare AIs"),
     h("div", { class: "reread" }, select, h("button", { type: "button", class: "btn", onclick: reread, disabled: d.state !== "DONE" }, "Read again")),
   );
 }
