@@ -1,0 +1,68 @@
+/* The three kinds of button, used in several places. */
+
+/* ── Icon buttons (IconButton in Icon.tsx): toolbar, panel top, file viewer ── */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #f0f0f0;
+}
+
+.icon-btn.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.icon-btn.primary:hover {
+  filter: brightness(0.96);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* ── Text buttons: Approve / Reject (DecisionBlock.tsx), Read again (RereadBlock.tsx) ── */
+.btn {
+  flex: 1;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Link-style buttons: Clear list (App.tsx), Open in new tab (FileViewer.tsx) ── */
+.link-btn {
+  margin-top: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}

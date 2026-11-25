@@ -1,0 +1,262 @@
+/* The middle column (App.tsx): title and toolbar, status line and counts, the message, and the invoice table. */
+
+/* ── Title row (App.tsx) ── */
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ── Toolbar (Toolbar.tsx) ── */
+.tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.search input {
+  width: 220px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+/* ── Status line and counts (StatusLine.tsx, Summary.tsx) ── */
+.subbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 22px;
+}
+
+.ai {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.dot.ok {
+  background: var(--ok);
+}
+
+.dot.bad {
+  background: var(--bad);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.summary b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Message line (App.tsx): red for errors, grey for info ── */
+.message {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.message.info {
+  background: var(--soft);
+  color: var(--text);
+}
+
+/* ── Invoice table (InvoiceTable.tsx) ── */
+.thead,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(90px, 0.8fr) minmax(110px, 0.9fr);
+  gap: 12px;
+  align-items: center;
+  padding: 0 18px;
+}
+
+.thead {
+  padding-bottom: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.row:nth-child(even) {
+  background: var(--soft);
+}
+
+.row:hover {
+  border-color: #dcdcdc;
+}
+
+.row.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.row.selected .muted,
+.row.selected .status {
+  color: var(--accent-text);
+}
+
+.row.selected .status-dot {
+  background: var(--accent-text);
+}
+
+.cell {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cell.strong {
+  font-weight: 500;
+}
+
+.decided {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The Result column: a coloured dot and the status; the dot pulses while waiting or reading. */
+.status {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.status-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.status.ok .status-dot {
+  background: var(--ok);
+}
+
+.status.note .status-dot {
+  background: var(--note);
+}
+
+.status.bad .status-dot {
+  background: var(--bad);
+}
+
+.status.wait .status-dot {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status.wait .status-dot {
+    animation: none;
+  }
+}
+
+/* No invoices yet. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 48px 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.empty .btn {
+  flex: none;
+  margin-top: 12px;
+  padding: 0 18px;
+}
+
+/* ── Phones: a narrower search, and the table drops its PO column ── */
+@media (max-width: 640px) {
+  .thead,
+  .row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(80px, 0.8fr) minmax(90px, 0.9fr);
+    padding: 0 12px;
+  }
+  .hide-sm {
+    display: none;
+  }
+  .search input {
+    width: 150px;
+  }
+  /* With the search open, the buttons go to a second line instead of off the screen. */
+  .tools {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

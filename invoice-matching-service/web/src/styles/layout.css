@@ -1,0 +1,88 @@
+/* The page's columns (App.tsx): the icon rail, the list, and the panel for the selected invoice. */
+
+.app {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 380px;
+  min-height: 100vh;
+}
+
+/* ── Icon rail (Rail.tsx) ── */
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 0;
+  border-right: 1px solid var(--line);
+}
+
+.rail-logo,
+.rail-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--text);
+}
+
+.rail-logo svg,
+.rail-item svg {
+  width: 20px;
+  height: 20px;
+}
+
+.rail-item.active {
+  color: var(--accent);
+}
+
+/* ── List and panel columns ── */
+.main {
+  position: relative;
+  padding: 28px 40px 40px;
+  min-width: 0;
+}
+
+.panel {
+  border-left: 1px solid var(--line);
+  padding: 28px 32px 40px;
+  min-width: 0;
+}
+
+/* Wide screens: the panel stays in view while the list scrolls. */
+@media (min-width: 1101px) {
+  .panel {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* ── Smaller screens ── */
+/* Up to 1100px (PANEL_BELOW_LIST_PX in App.tsx) the panel moves below the list. */
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .panel {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* Phones: no rail, smaller margins. */
+@media (max-width: 640px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rail {
+    display: none;
+  }
+  .main,
+  .panel {
+    padding: 20px 16px 32px;
+  }
+}

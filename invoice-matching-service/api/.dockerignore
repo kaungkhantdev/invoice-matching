@@ -1,0 +1,6 @@
+# Never put the AWS keys in the image: compose.yaml passes .env in when the container starts.
+.env
+node_modules
+dist
+output
+output-local

@@ -1,0 +1,10 @@
+/*
+ * The page's styles, one file per part of the page. They load in this order and a later rule wins a tie,
+ * so keep the order: shared rules first, then each part of the page.
+ */
+@import "./styles/base.css"; /* colours, reset, helpers, keyboard focus */
+@import "./styles/buttons.css"; /* icon, text and link buttons */
+@import "./styles/layout.css"; /* the columns: rail, list, panel (and how they change on smaller screens) */
+@import "./styles/list.css"; /* title, toolbar, status line, message, invoice table */
+@import "./styles/panel.css"; /* the selected invoice */
+@import "./styles/viewer.css"; /* the original file in a dialog */

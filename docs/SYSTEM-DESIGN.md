@@ -30,9 +30,9 @@
 |---|---|---|
 | 1 IN | Save the file and its row first, so nothing is lost | `InvoicesController`, `InvoiceStore.add` |
 | 2 QUEUE | Let 700 arrive at once, but read only as many as the AI can handle | `InvoiceStore` (on AWS: SQS) |
-| 3 READ | Turn any format into the same standard invoice | `ReaderService`, `TextractReader`, `BedrockExtractor` |
+| 3 READ | Turn any format into the same standard invoice | `ReaderService`, `TextractReader`, `BedrockReader` |
 | 4 CHECK | Plain-code rules, each with a written reason | `CheckerService` |
-| 5 REVIEW | Every invoice is listed with its result; people check the problems and approve or reject | review page (`public/`) |
+| 5 REVIEW | Every invoice is listed with its result; people check the problems and approve or reject | NestJS API (`api/`) + React page (`web/`, display only) |
 
 ## The 7 checks
 
@@ -48,7 +48,21 @@
 
 Any ✗ → **Review**. A difference of ≤ 1.00 on any checked amount (rounding), or no GST from a GST-registered supplier → **Matched with a note**.
 
-## Matching to the PO our team keyed
+## Matching to the PO
+
+**The PO comes with the invoice:** the team uploads screenshots of the PO page in our system (Recurring PO Details) together with the supplier's invoice. Bedrock reads the PO (number, status, supplier, delivery site, contract start–end, items with frequency and monthly total, grand total), the code checks that it adds up, and the invoice is checked against **that** PO:
+
+| On the PO | Must match |
+|---|---|
+| PO number | quoted on the invoice (not quoted: ⚠️ note) |
+| Supplier · status · delivery site | the invoice's supplier · APPROVED · the invoice's site (or its signed service records) |
+| Contract start – end | the month the invoice is for |
+| Each item's monthly total | the invoice line's amount (the PO counts visits, the invoice counts items: quantities aren't compared) |
+| Grand total | the invoice's subtotal |
+
+A recurring PO is billed **once a month**.
+
+On the page, every invoice comes with its PO screenshots. **Without screenshots** (the batch command `npm run match`), the PO is looked up among those keyed in `api/data/`:
 
 | Invoice has | Found by | Result |
 |---|---|---|
@@ -100,8 +114,6 @@ What the reader catches, as marked by the team: supplier · bill to ICFM · invo
 | can't get an AWS login | Try again (it may only be offline), then **Review** with the fix in plain words |
 
 Each file goes to Textract **once** while the app runs: a queue retry or **Read again** reuses the result, so pages aren't paid for twice.
-
-**Trying without AWS:** `AI_PROVIDER=claude` (Claude API, with `TEXTRACT=off`) or `local` (a model on your own machine, 15–18 s per invoice on a Mac M5; Textract is never used with it, so nothing leaves the machine). Same standard invoice, so steps 4 and 5 never change.
 
 ## Why 700 at once works
 

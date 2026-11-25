@@ -1,0 +1,40 @@
+# The API and the page together:   docker compose up --build   →   http://localhost:8080
+# Each has its own Dockerfile (api/, web/), so each can also live in a repo of its own.
+services:
+  api:
+    build: ./api
+    # Ctrl+C stops it at once.
+    init: true
+    # The AWS keys (and any other setting) from api/.env, read when the container is created
+    # (after changing api/.env: Ctrl+C, then docker compose up again; "restart" keeps the old values).
+    env_file:
+      - path: api/.env
+        required: false
+    # Fixed for Docker, whatever api/.env says (these win over api/.env).
+    environment:
+      DATA_DIR: ${DATA_DIR:-data}
+      HOST: 0.0.0.0
+      PORT: "3000"
+      UI_STORE_DIR: output/ui
+      # The page's address below. Keep it the same as the published port of web.
+      WEB_ORIGINS: http://localhost:8080|http://127.0.0.1:8080
+    # Not published: only the page (web) reaches it, inside Docker.
+    volumes:
+      # Edit suppliers and POs on this computer, then click "Re-check all".
+      - ./api/data:/app/data:ro
+      - ./api/examples:/app/examples:ro
+      # Uploads and results survive restarts ("docker compose down -v" deletes them).
+      - invoice-results:/app/output
+
+  web:
+    build: ./web
+    environment:
+      API_URL: http://api:3000
+    depends_on:
+      - api
+    # This computer only. Keep the port the same as in WEB_ORIGINS above (the API refuses other addresses).
+    ports:
+      - "127.0.0.1:8080:80"
+
+volumes:
+  invoice-results:

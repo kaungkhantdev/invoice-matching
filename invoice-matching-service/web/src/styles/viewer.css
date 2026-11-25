@@ -1,0 +1,154 @@
+/* The original file in a dialog over the page (FileViewer.tsx). */
+
+/* The dark backdrop; a click on it closes the dialog. */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 20, 20, 0.45);
+}
+
+.modal-box {
+  display: flex;
+  flex-direction: column;
+  width: min(900px, 100%);
+  max-height: 100%;
+  border-radius: 14px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* The file name, "Open in new tab" and Close. */
+.modal-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-head > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.modal-head .link-btn {
+  margin: 0;
+}
+
+/* The preview: an image, the PDF's pages, or the text. */
+.modal-body {
+  overflow: auto;
+  background: var(--soft);
+}
+
+.modal-body img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.pages {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.pages img {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+.modal-body pre {
+  margin: 0;
+  padding: 16px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Match an invoice with its PO (PoUpload.tsx): two numbered drop boxes, then Match ── */
+.modal-box.narrow {
+  width: min(560px, 100%);
+}
+
+.po-upload {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  overflow: auto;
+}
+
+.drop-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+.drop-box.dragging {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.drop-box p {
+  margin: 0;
+}
+
+.drop-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* The 1 and 2 in front of the box titles. */
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 12px;
+}
+
+.picked {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.picked li {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.picked span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picked .link-btn {
+  margin: 0;
+}
+
+.po-upload-actions {
+  display: flex;
+  gap: 8px;
+}

@@ -1,0 +1,8 @@
+[
+  { "id": "SUP-001", "name": "Orchid Garden Supplies Pte. Ltd.", "uen": "201912345K", "gstRegNo": "201912345K", "bankAccountNumber": "072-123456-7" },
+  { "id": "SUP-002", "name": "Kallang Packaging Pte. Ltd.", "uen": "201788888W", "gstRegNo": "201788888W", "bankAccountNumber": "501-234567-001" },
+  { "id": "SUP-003", "name": "Tiong Bahru Ribbon & Craft", "uen": "53312345A", "gstRegNo": null, "bankAccountNumber": "351-301-234-5" },
+  { "id": "SUP-004", "name": "Jurong Cold Chain Logistics Pte. Ltd.", "uen": "202011111R", "gstRegNo": "202011111R", "bankAccountNumber": "072-555111-3" },
+  { "id": "SUP-RENTOKIL", "name": "Rentokil Initial Singapore Pte Ltd", "uen": "195900145N", "gstRegNo": "M2-0003184-9", "bankAccountNumber": ["141-662528-001", "0100124194"] },
+  { "id": "SUP-MASANDAO", "name": "Masandao Pte Ltd", "uen": "201612471N", "gstRegNo": "201612471N", "bankAccountNumber": "344-307-486-2" }
+]

@@ -1,5 +1,7 @@
-node_modules/
-dist/
+# api/ and web/ each have their own .gitignore. This one is a safety net for copies set up before the split,
+# which kept the AWS keys (.env) and real invoices (output/) here: they must never be committed.
+.env
 output/
 output-local/
-.env
+node_modules/
+dist/

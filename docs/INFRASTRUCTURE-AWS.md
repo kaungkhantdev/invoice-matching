@@ -31,7 +31,7 @@
 | **Amazon Textract** | Reads the text of every PDF page and photo (OCR), and finds the invoice fields | Exact on characters, so small print and photos are read right. Its own fields double-check Claude (check 0). Runs in Singapore. `AnalyzeExpense`, **US$0.01 per page** (~US$7–10 for 700 invoices) |
 | **Amazon Bedrock** | Claude understands the invoice: the file + Textract's text → our standard invoice | AWS runs it inside our account rules (IAM, no API key). **Claude Sonnet 5 runs In-Region in Singapore** |
 | **RDS PostgreSQL + RDS Proxy** | Invoices, results, decisions, audit | Proper database with point-in-time backup. The proxy stops hundreds of Lambdas running out of database connections |
-| **ECS Fargate + ALB** | Review page + API (the NestJS app) | Always on, no servers to patch, 2 copies across 2 zones. ALB does the login |
+| **ECS Fargate + ALB** | Review page (`web/`, nginx) + API (`api/`, NestJS): two containers in one task, nginx forwards `/api` to the API | Always on, no servers to patch, 2 copies across 2 zones. ALB does the login |
 | **Cognito** | Login | Connects to company login (Microsoft Entra ID or Google Workspace) |
 | **KMS · Secrets Manager** | Encryption and secrets | Files and database encrypted. No passwords in code |
 | **CloudWatch** | Alarms | Queue too old, DLQ not empty, errors |
@@ -60,23 +60,14 @@
 | Bedrock tokens per minute | Ask AWS to raise it before go-live | The real limit on speed |
 | Textract `AnalyzeExpense` requests/second | Ask AWS to raise it from **1** to about **10** | Every PDF page and photo is one request; the app paces itself to `TEXTRACT_TPS` |
 
-## Which Claude on AWS?
+## Which Claude on Bedrock?
 
 | Option | Where the AI runs | Use it when |
 |---|---|---|
 | **Bedrock, Claude Sonnet 5, In-Region** ✅ (`anthropic.claude-sonnet-5`) | **Singapore only** | **Default.** Invoice data must stay in Singapore (PDPA) |
 | Bedrock, Claude Opus 5.5, "Global" (`global.anthropic.claude-opus-5-5`) | Any AWS region worldwide | Newest models are needed, and data leaving Singapore is acceptable |
-| Claude Platform on AWS | Run by Anthropic; AI runs "global" or "us" only | Not for this workload: data leaves Singapore, and Anthropic (not AWS) processes it |
 
 On Bedrock, AWS is the data processor and Anthropic keeps no inputs or outputs. Use the **`bedrock-runtime`** endpoint (the app does): in Singapore, In-Region Claude is offered there, not on the newer `bedrock-mantle` endpoint.
-
-## Option: keep the AI in Singapore with our own model
-
-**Amazon SageMaker AI asynchronous inference**, `ml.g5.xlarge` (A10G GPU, about US$1.97/hour), running vLLM + a vision model.
-- **Scales to zero** when idle, and holds its own queue of up to 6 hours, so it suits a month-end burst.
-- The usual EC2 GPU servers (g5, g6, g6e) **aren't offered in Singapore**. That's why it's SageMaker.
-- A 12B model at full precision needs 40 GB+, so use a quantized version on a 24 GB A10G.
-- Speed on invoices is **unknown**: benchmark on your own invoices first.
 
 ## Security and retention
 
@@ -101,8 +92,8 @@ On Bedrock, AWS is the data processor and Anthropic keeps no inputs or outputs. 
 |---|---|
 | Queue inside the app (`InvoiceStore`) | SQS + a Lambda handler calling the same `MatchingService` |
 | `store.json` | Postgres table (same states: QUEUED → READING → DONE) |
-| Textract → Bedrock reader | Already built (`TextractReader`, `BedrockExtractor`). Lambda only needs an IAM role instead of an `aws configure` login |
+| Textract → Bedrock reader | Already built (`TextractReader`, `BedrockReader`). Lambda only needs an IAM role instead of the keys in the API's `.env` |
 | Textract result kept in memory (so retries don't pay twice) | Keep it with the invoice row, so an SQS retry on another Lambda reuses it too |
 | Files on disk | S3 |
 
-Schema, readers and checks (`src/invoice-matching/`) stay the same.
+Schema, readers and checks (`api/src/matching/`) stay the same.
