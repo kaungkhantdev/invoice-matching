@@ -1,6 +1,6 @@
 import { Decimal } from "decimal.js";
 import type { PoLine, PurchaseOrder } from "./accounting/accounting.source.js";
-import { cleanAmount, D, fmt, round2 } from "./normalize.js";
+import { cleanAmount, D, fmt, isIsoDate, round2, toIsoDate } from "./normalize.js";
 import type { PoRead } from "./po.schema.js";
 
 /** The PO uploaded with an invoice (screenshots of our system's PO page), ready for the checks. */
@@ -14,7 +14,6 @@ export interface UploadedPo {
 
 /** The page rounds each item's total to cents: 3.333 × 8.00 = 26.664 shows as 26.66. */
 const ROUNDING = D("0.01");
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** The PO as read from its screenshots → the PurchaseOrder the checks compare the invoice with, and its problems. */
 export function uploadedPo(read: { po: PoRead | null; error: string | null }): UploadedPo {
@@ -26,16 +25,20 @@ export function uploadedPo(read: { po: PoRead | null; error: string | null }): U
   const problems: string[] = [];
   const lines = shown.lines.flatMap((line, i) => poLine(line, i, problems));
   // Our PO page always shows these: one missing was cut off the screenshots, and its check couldn't be done.
-  if (!shown.poNumber) problems.push("no PO number on it");
-  if (!shown.supplierName) problems.push("the supplier isn't on the screenshots");
-  if (!shown.status) problems.push("the status isn't on the screenshots");
-  if (!shown.site) problems.push("the delivery site isn't on the screenshots");
+  if (!given(shown.poNumber)) problems.push("no PO number on it");
+  if (!given(shown.supplierName)) problems.push("the supplier isn't on the screenshots");
+  if (!given(shown.status)) problems.push("the status isn't on the screenshots");
+  if (!given(shown.site)) problems.push("the delivery site isn't on the screenshots");
   const recurring = shown.lines.some((line) => line.frequency);
-  if (recurring && (!shown.startDate || !shown.endDate)) problems.push("the contract dates aren't on the screenshots");
+  const startShown = given(shown.startDate);
+  const endShown = given(shown.endDate);
+  if (recurring && (!startShown || !endShown)) problems.push("the contract dates aren't on the screenshots");
   if (!shown.lines.length) problems.push("no items read");
   problems.push(...grandTotalProblem(shown, lines));
-  for (const [label, date] of [["contract start", shown.startDate], ["contract end", shown.endDate]] as const) {
-    if (date !== null && !DATE.test(date)) problems.push(`couldn't read the ${label} date ("${date}")`);
+  const validFrom = contractDate("contract start", startShown, problems);
+  const validTo = contractDate("contract end", endShown, problems);
+  if (validFrom && validTo && validFrom > validTo) {
+    problems.push(`the contract end (${validTo}) is before its start (${validFrom})`);
   }
   if (shown.uncertainFields.length) problems.push(`not clear on the screenshots: ${shown.uncertainFields.join(", ")}`);
 
@@ -44,8 +47,8 @@ export function uploadedPo(read: { po: PoRead | null; error: string | null }): U
     supplierName: shown.supplierName ?? undefined,
     currency: shown.currency,
     site: shown.site ?? undefined,
-    validFrom: validDate(shown.startDate),
-    validTo: validDate(shown.endDate),
+    validFrom,
+    validTo,
     status: shown.status ?? undefined,
     lines,
   };
@@ -80,17 +83,36 @@ function poLine(line: PoRead["lines"][number], i: number, problems: string[]): P
   ];
 }
 
-/** The items must add up to the grand total (a row read twice from overlapping screenshots, or one missed). */
+/**
+ * The items must add up to the grand total (a row read twice from overlapping screenshots, or one missed).
+ * Our PO page always shows it: one missing was cut off the screenshots, and the sum couldn't be checked.
+ */
 function grandTotalProblem(shown: PoRead, lines: PoLine[]): string[] {
-  if (shown.grandTotal === null) return [];
-  const grandTotal = cleanAmount(shown.grandTotal);
+  if (!given(shown.grandTotal)) return ["the grand total isn't on the screenshots"];
+  const grandTotal = cleanAmount(shown.grandTotal!);
   if (grandTotal === null) return [`couldn't read the grand total ("${shown.grandTotal}")`];
   const sum = lines.reduce((total, line) => total.plus(line.amount!), new Decimal(0));
   if (sum.eq(grandTotal)) return [];
   return [`the items add up to ${fmt(sum)}, its grand total is ${fmt(D(grandTotal))}`];
 }
 
-/** A YYYY-MM-DD date, or nothing (an unreadable date is a problem, not a guess). */
-function validDate(date: string | null): string | undefined {
-  return date !== null && DATE.test(date) ? date : undefined;
+/**
+ * A contract date as YYYY-MM-DD, from the date as the page shows it ("05/11/2026" → "2026-11-05", see toIsoDate).
+ * Nothing when it isn't shown; a problem when it isn't a real date (an unreadable date is not guessed).
+ */
+function contractDate(label: string, shown: string | null, problems: string[]): string | undefined {
+  if (shown === null) return undefined;
+  const date = toIsoDate(shown);
+  // Already YYYY-MM-DD: the AI turned it around itself (or it is a PO read before dates were copied as shown).
+  if (date === null && isIsoDate(shown.trim())) {
+    problems.push(`the ${label} date wasn't copied as shown ("${shown}"): click Read again`);
+  } else if (date === null) {
+    problems.push(`couldn't read the ${label} date ("${shown}")`);
+  }
+  return date ?? undefined;
+}
+
+/** The value, or null when it is missing or blank. */
+function given(value: string | null): string | null {
+  return value?.trim() || null;
 }

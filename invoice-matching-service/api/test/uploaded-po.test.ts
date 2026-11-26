@@ -31,13 +31,13 @@ const screenshots = (change: (po: PoRead) => void = () => {}): PoRead => {
     documentType: "purchase_order",
     poNumber: "GEN000073",
     status: "APPROVED",
-    orderDate: "2026-11-01",
+    orderDate: "01/11/2026",
     supplierName: "Rentokil Initial (S) Pte Ltd",
     site: "2 Changi South Street 2, Singapore 486759",
     currency: "SGD",
     contractRef: null,
-    startDate: "2026-11-05",
-    endDate: "2099-12-31",
+    startDate: "05/11/2026",
+    endDate: "31/12/2099",
     lines: [
       L("MWRC03", "115 X 180 Red/Citrine Welcome", "Monthly", "1", "7.00", "7.00"),
       L("MNGY02", "85 X 150 Black/White Classic", "Bi-weekly", "2", "5.00", "10.00"),
@@ -166,12 +166,12 @@ describe("PO read from screenshots", () => {
     assert.deepEqual(readTwice, ["the items add up to 194.28, its grand total is 187.28"]);
     const unclear = uploadedPo(poRead(screenshots((po) => {
       po.poNumber = null;
-      po.startDate = "05/11/2026";
+      po.startDate = "next month";
       po.uncertainFields = ["lines[3].total"];
     })));
     assert.deepEqual(unclear.problems, [
       "no PO number on it",
-      'couldn\'t read the contract start date ("05/11/2026")',
+      'couldn\'t read the contract start date ("next month")',
       "not clear on the screenshots: lines[3].total",
     ]);
     assert.equal(unclear.po?.validFrom, undefined, "an unreadable date is not guessed");
@@ -180,17 +180,47 @@ describe("PO read from screenshots", () => {
   it("a field cut off the screenshots is a problem, not a check quietly skipped", () => {
     const cropped = uploadedPo(poRead(screenshots((po) => {
       po.startDate = null;
-      po.endDate = null;
+      po.endDate = " ";
       po.status = null;
       po.supplierName = null;
       po.site = null;
+      po.grandTotal = null;
     })));
     assert.deepEqual(cropped.problems, [
       "the supplier isn't on the screenshots",
       "the status isn't on the screenshots",
       "the delivery site isn't on the screenshots",
       "the contract dates aren't on the screenshots",
+      "the grand total isn't on the screenshots",
     ]);
+    const blank = uploadedPo(poRead(screenshots((po) => ((po.grandTotal = " "), (po.poNumber = " ")))));
+    assert.deepEqual(blank.problems, ["no PO number on it", "the grand total isn't on the screenshots"], "blank = missing");
+  });
+
+  it("dates are copied as shown (DD/MM/YYYY) and turned into dates by code, so day and month can't swap", () => {
+    const dates = (startDate: string, endDate: string) => {
+      const { po, problems } = uploadedPo(poRead(screenshots((po) => Object.assign(po, { startDate, endDate }))));
+      return { from: po?.validFrom, to: po?.validTo, problems };
+    };
+    assert.deepEqual(dates("05/11/2026", "31/12/2099"), { from: "2026-11-05", to: "2099-12-31", problems: [] }, "5 November, not 11 May");
+    assert.deepEqual(dates("5/1/2027", " 28.02.2027 "), { from: "2027-01-05", to: "2027-02-28", problems: [] });
+    // A date the AI turned into YYYY-MM-DD itself may have day and month swapped: refused, not trusted.
+    assert.deepEqual(dates("2026-05-11", "31/12/2099"), {
+      from: undefined,
+      to: "2099-12-31",
+      problems: ['the contract start date wasn\'t copied as shown ("2026-05-11"): click Read again'],
+    });
+    for (const wrong of ["31/02/2027", "05/13/2026", "05/11/26", "05/11-2026", "5 Nov 2026"]) {
+      assert.deepEqual(dates(wrong, "31/12/2099").problems, [`couldn't read the contract start date ("${wrong}")`], wrong);
+      assert.equal(dates(wrong, "31/12/2099").from, undefined, `${wrong}: not guessed`);
+    }
+  });
+
+  it("a contract that ends before it starts is a problem", () => {
+    const backwards = uploadedPo(poRead(screenshots((po) => (po.endDate = "31/12/2025"))));
+    assert.deepEqual(backwards.problems, ["the contract end (2025-12-31) is before its start (2026-11-05)"]);
+    const oneDay = uploadedPo(poRead(screenshots((po) => (po.endDate = po.startDate))));
+    assert.deepEqual(oneDay.problems, [], "a contract of one day is fine");
   });
 
   it("not a PO, or not read at all → no PO, and why", () => {
@@ -333,6 +363,8 @@ describe("BedrockReader.readPo", () => {
     const content = bodies[0].messages[0].content as Anthropic.Beta.BetaContentBlockParam[];
     assert.deepEqual(content.map((block) => block.type), ["image", "image", "text"]);
     assert.match(String(bodies[0].system), /screenshots may overlap/);
+    assert.match(String(bodies[0].system), /startDate, endDate .*exactly as shown/);
+    assert.doesNotMatch(String(bodies[0].system), /YYYY-MM-DD/, "the AI no longer turns dates around");
     const format = bodies[0].output_config?.format as { type: string; schema: { properties: object } };
     assert.equal(format.type, "json_schema");
     assert.ok("grandTotal" in format.schema.properties, "the PO structure, not the invoice's");

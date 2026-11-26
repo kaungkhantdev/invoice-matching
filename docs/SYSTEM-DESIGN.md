@@ -50,7 +50,7 @@ Any ✗ → **Review**. A difference of ≤ 1.00 on any checked amount (rounding
 
 ## Matching to the PO
 
-**The PO comes with the invoice:** the team uploads screenshots of the PO page in our system (Recurring PO Details) together with the supplier's invoice. Bedrock reads the PO (number, status, supplier, delivery site, contract start–end, items with frequency and monthly total, grand total), the code checks that it adds up, and the invoice is checked against **that** PO:
+**The PO comes with the invoice:** the team uploads screenshots of the PO page in our system (Recurring PO Details) together with the supplier's invoice. Bedrock reads the PO (number, status, supplier, delivery site, contract start–end, items with frequency and monthly total, grand total). The code checks that it adds up and that its dates are real, start before end: Claude copies the dates as shown, and the code reads 05/11/2026 as 5 November. Then the invoice is checked against **that** PO:
 
 | On the PO | Must match |
 |---|---|

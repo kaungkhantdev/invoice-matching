@@ -111,7 +111,7 @@ Every invoice comes in **with its PO**: that is the only way to add one, so you 
 | Each item's **Total** (a month) | The invoice line's amount. Quantities aren't compared: the PO counts visits (10.5 bi-monthly), the invoice counts items (21) |
 | Grand Total | The invoice's subtotal |
 
-The PO itself must add up (quantity × unit price = total, items = grand total), or check 2 says what doesn't. A recurring PO is billed once a month. The supplier must still be in `api/data/suppliers.json` (check 6: UEN, GST no., bank account).
+The PO itself must add up (quantity × unit price = total, items = grand total) and have real contract dates, start before end; otherwise check 2 says what's wrong. Claude copies the dates as shown (05/11/2026) and the code reads them day first, so day and month can't be swapped. A recurring PO is billed once a month. The supplier must still be in `api/data/suppliers.json` (check 6: UEN, GST no., bank account).
 
 **Real example:** PO GEN000073 (`~/Desktop/research/invoice-type/PO/`, 2 screenshots) with `~/Desktop/research/invoice-type/Rentokil 0021490975.pdf`: all 9 charged lines match (Dual Paper 26.67 vs 26.66 a month: a note), and it goes to **Review** only because the invoice is for October and the contract starts on 5 November 2026.
 

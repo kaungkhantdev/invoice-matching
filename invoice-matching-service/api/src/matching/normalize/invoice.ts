@@ -1,5 +1,6 @@
 import { MONTH_LENGTH, type StandardInvoice } from "../invoice.schema.js";
 import { cleanAmount, D } from "./amounts.js";
+import { isIsoDate } from "./dates.js";
 import { pricesIncludeTaxFromNumbers } from "./tax.js";
 
 type InvoiceLine = StandardInvoice["lines"][number];
@@ -125,13 +126,6 @@ function cleanDate(label: string, value: string | null, problems: string[]): str
   if (isIsoDate(date)) return date;
   problems.push(`${label} is not a valid date: "${value}"`);
   return null;
-}
-
-/** A real calendar date written YYYY-MM-DD ("2026-02-30" is not). */
-function isIsoDate(text: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
-  const date = new Date(`${text}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(text);
 }
 
 function cleanSupplier(supplier: StandardInvoice["supplier"]): StandardInvoice["supplier"] {

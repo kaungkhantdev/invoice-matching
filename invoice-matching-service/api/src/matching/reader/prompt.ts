@@ -63,8 +63,8 @@ export const PO_SYSTEM_PROMPT = [
   `- documentType: "purchase_order" when the files show a PO; otherwise "other".`,
   `- poNumber: the PO number ("Purchase No", "PO No."), as shown; null if not shown.`,
   `- status: as shown, e.g. "APPROVED"; null if not shown.`,
-  `- orderDate, startDate, endDate (the contract's start and end): YYYY-MM-DD. ` +
-    `Singapore pages write dates as DD/MM/YYYY, so 05/11/2026 is 2026-11-05.`,
+  `- orderDate, startDate, endDate (the contract's start and end): exactly as shown, character by character ` +
+    `(e.g. "05/11/2026"). Don't reorder or reformat them.`,
   `- supplierName: the supplier's name as shown.`,
   `- site: the delivery site's address with its postal code (e.g. "2 Changi South Street 2, Singapore 486759"). ` +
     `Not the billing address, unless it is the only address shown.`,
